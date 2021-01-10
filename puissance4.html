@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Test</title>
+    <style>
+      body, html, canvas {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id='c1' style='background-color: #161616;' width=1366 height=625></canvas>
+
+    <script type="text/javascript">
+
+      let canvas = document.getElementById('c1');
+      let ctx = canvas.getContext('2d');
+      window.onload = create;
+
+      // ------------- variables -------------
+
+      var grille = {
+        x : 7,
+        y : 7,
+        taille : 50,
+        fond : '#2C7FB7',
+      }
+
+      var joueur = {
+        color : ['white','yellow','red'],
+        current : 1,
+      }
+      var inter = 0;
+      var tab = [];
+      ini();
+
+      // ------------- fonctions -------------
+
+      // ini
+      function ini(){
+        for (var y=0;y<grille.y;y++){
+    			tab[y]=[];
+    			for (var x=0;x<grille.x;x++){
+    				tab[y][x]=0;
+    			}
+    		}
+      }
+
+      // ajouter un pion
+  		function add(x,j){
+  			for (var y=grille.y-1;y>=0;y--){
+  				if (tab[y][x]== 0) {
+  					tab[y][x]=j;
+  					return true;
+  				}
+  			}
+        console.log('stop')
+  			return false;
+  		}
+
+      // vérifier si il y un gagnant
+  		function verif(){
+        for (var y=3;y<grille.y;y++){
+          for (var x=0;x<grille.x;x++){
+  					if (tab[y][x]!=0) {
+  						current=tab[y][x];
+  						if (tab[y-1][x]===current && tab[y-2][x]===current && tab[y-3][x]===current) return current; //colonne
+              if (tab[y][x-1]==current && tab[y][x-2]==current && tab[y][x-3]==current) return current; //ligne
+              if (tab[y-1][x-1]==current && tab[y-2][x-2]==current && tab[y-3][x-3]==current) return current; //diago1
+              if (tab[y-1][x+1]==current && tab[y-2][x+2]==current && tab[y-3][x+3]==current) return current; //diago2
+  					}
+  				}
+  			}
+        return 0;
+  		}
+
+      // afficher tout
+  		function draw(){
+
+        ctx.fillStyle=grille.fond;
+        ctx.fillRect(0,0,grille.x*grille.taille,grille.y*grille.taille);
+
+  			for (var y=0;y<grille.y;y++){
+  				for (var x=0;x<grille.x;x++){
+  					ctx.fillStyle=joueur.color[tab[y][x]];
+            var d=grille.taille/6;
+            fillCircle(x*grille.taille+d/2,y*grille.taille+d/2,grille.taille-d)
+  				}
+  			}
+
+        if (inter == 0) {
+          ctx.font = '23px Verdana';
+    			ctx.fillStyle = 'white';
+    			ctx.fillText('Au tour de',grille.x*grille.taille+40,(grille.y*grille.taille)/3);
+  		  	ctx.fillStyle=joueur.color[joueur.current];
+    			fillCircle(grille.x*grille.taille+75,(grille.y*grille.taille)/3+40,grille.taille,grille.taille);
+        }
+
+        if (inter == 1) {
+          ctx.font = '20px Verdana';
+    			ctx.fillStyle = 'white';
+    			ctx.fillText('Le gagnant est',grille.x*grille.taille+20,(grille.y*grille.taille)/3);
+  		  	ctx.fillStyle=joueur.color[joueur.current];
+    			fillCircle(grille.x*grille.taille+75,(grille.y*grille.taille)/3+40,grille.taille,grille.taille);
+
+          ctx.strokeStyle = "white";
+          ctx.strokeRect(grille.x*grille.taille+13,(grille.y*grille.taille)/3-40,170,grille.taille*3);
+
+          ctx.font = '11px Verdana';
+    			ctx.fillText('Cliquer pour recommencer.',grille.x*grille.taille+22,(grille.y*grille.taille)/1.4);
+        }
+
+  		}
+
+      // event souris
+      document.onmousedown = function(event) {
+    			// event.clientX --- event.clientY
+          var a=Math.round(window.innerWidth/2-(((grille.x*grille.taille)/2)*e));
+          var x=(event.clientX-a)/e;
+          if (inter == 0) {
+            if (x/grille.taille >= 0 && x/grille.taille < grille.x) {
+              if (add(Math.trunc(x/grille.taille),joueur.current)) {
+                var g=verif();
+                if (g !== 0) { inter = 1;} else if (joueur.current==1) { joueur.current=2 } else { joueur.current=1 };
+              };
+            }
+          } else {
+            ini();
+            inter=0;
+          }
+
+
+    	}
+
+      //dessiné un cercle
+      function fillCircle(x,y,t){
+        ctx.beginPath();
+        ctx.arc(x+t/2, y+t/2, t/2, 0, 2 * Math.PI);
+        ctx.fill();
+      }
+
+      // create & update
+  		function create(){
+  			update();
+  	  }
+
+      var e;
+      function update(){
+        window.requestAnimationFrame(update);
+        canvas.width = window.innerWidth;
+    	  canvas.height = window.innerHeight;
+
+        e=window.innerHeight/(grille.y*grille.taille);
+        ctx.translate(window.innerWidth/2-(((grille.x*grille.taille)/2)*e), 0)
+        ctx.scale(e, e);
+
+        draw();
+
+      }
+
+
+    </script>
+
+  </body>
+</html>
